@@ -3,6 +3,11 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
+// Import Models
+const User = require('./models/User');
+const Job = require('./models/Job');
+const Application = require('./models/Application');
+
 // Load env vars
 dotenv.config({ path: '../.env' });
 
