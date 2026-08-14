@@ -63,3 +63,11 @@ This is an AI-powered Applicant Tracking System (ATS) built for the Zaalima Inte
 - Created `Job` schema for job postings.
 - Created `Application` schema to handle resume paths, AI scores, and application tracking.
 - Successfully linked models using ObjectId references.
+
+### Day 3: JWT Authentication
+- Installed `bcryptjs` and `jsonwebtoken` for secure user authentication.
+- Created `authController` handling `/register`, `/login`, and `/me` endpoints.
+- Implemented `protect` middleware to verify JWT tokens securely.
+- Implemented role-based `authorize` middleware to restrict access to specific roles (recruiter vs candidate).
+- Secured passwords using bcrypt hashing before saving to the database.
+- Added environment variable validation for JWT signatures.
