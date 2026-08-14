@@ -48,3 +48,18 @@ This is an AI-powered Applicant Tracking System (ATS) built for the Zaalima Inte
    npm run dev
    ```
    (Runs on http://localhost:3000)
+
+## Progress Report
+
+### Day 1: Architecture Setup
+- Initialized React/Vite frontend with Material UI and React Query.
+- Initialized Node.js/Express backend with MongoDB connectivity.
+- Established basic server health-check API and frontend connection verification.
+- Configured environment variables and `.gitignore`.
+
+### Day 2: Database Modeling
+- Designed and implemented MongoDB data models using Mongoose.
+- Created `User` schema for recruiters and candidates.
+- Created `Job` schema for job postings.
+- Created `Application` schema to handle resume paths, AI scores, and application tracking.
+- Successfully linked models using ObjectId references.
