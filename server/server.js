@@ -17,9 +17,14 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/jobs', require('./routes/jobRoutes'));
+app.use('/api/upload', require('./routes/uploadRoutes'));
+app.use('/api/applications', require('./routes/applicationRoutes'));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
