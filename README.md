@@ -109,3 +109,31 @@ This is an AI-powered Applicant Tracking System (ATS) built for the Zaalima Inte
 - Added strict authorization so recruiters can only view candidates who applied to their specific jobs.
 - Created the **Job Applications Management Page** for recruiters.
 - Implemented a dynamic Status Dropdown allowing recruiters to change candidate status (Applied, Interview, Offered, Rejected) with color-coded UI feedback.
+
+### Day 11: Recruiter Application Pipeline
+- Built a native drag-and-drop Kanban board interface for recruiters to manage application stages.
+- Replaced the basic data table with visually distinct `Applied`, `Interview`, `Offered`, and `Rejected` columns.
+- Implemented real-time React Query mutations so dragging a candidate's card instantly updates the backend status seamlessly.
+
+### Day 12: PDF Resume Text Extraction
+- Integrated the `pdf-parse` library into the backend to automatically parse uploaded resumes.
+- Added background processing to extract all text from PDF documents the moment a candidate applies.
+- Safely isolated the searchable extracted text in the database (`resumeText`) while keeping the physical files secure.
+- Added graceful error handling for missing files, unreadable formats, and DOCX fallback.
+
+### Day 13: Google Gemini AI Integration
+- Created an isolated `geminiService` strictly confined to the backend to protect the API Key.
+- Wrote strict, bias-free AI prompt instructions commanding Gemini 1.5 Flash to extract exactly 5 structured fields (Name, Skills, Experience, Education, Summary).
+- Implemented JSON cleansing and parsing to reliably store the AI's extraction directly into the `Application` schema.
+
+### Day 14: AI Candidate & Job Matching Engine
+- Upgraded the `geminiService` with an intelligent evaluation prompt that directly compares the candidate's extracted data against the specific job's requirements.
+- The AI now scores the candidate from 0-100, explicitly highlighting `matchedSkills` and `missingSkills`.
+- Instructed the AI to strictly ignore all protected characteristics (gender, age, etc.) ensuring a completely fair, qualifications-based score.
+- Added a secure endpoint (`POST /api/applications/:id/analyze`) for recruiters to manually trigger the analysis for any candidate.
+
+### Day 15: Candidate Ranking & Filtering Dashboard
+- Developed a comprehensive Candidate Ranking dashboard giving recruiters a top-down view of candidate fit.
+- Implemented advanced client-side filtering: Filter by Minimum AI Score, current Application Status, and live text search through both extracted and AI-matched Skills.
+- Implemented dynamic Sorting capabilities (Highest Score, Lowest Score, Newest Applications).
+- Added an interactive UI toggle allowing recruiters to seamlessly switch between the drag-and-drop Pipeline Board and the AI Ranking Dashboard.
