@@ -15,6 +15,9 @@ const applicationSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  resumeText: {
+    type: String,
+  },
   status: {
     type: String,
     enum: ['Applied', 'Interview', 'Offered', 'Rejected'],
@@ -30,7 +33,18 @@ const applicationSchema = new mongoose.Schema({
     type: [String],
     default: [],
   },
+  matchedSkills: {
+    type: [String],
+    default: [],
+  },
+  missingSkills: {
+    type: [String],
+    default: [],
+  },
   experience: {
+    type: String,
+  },
+  education: {
     type: String,
   }
 }, {

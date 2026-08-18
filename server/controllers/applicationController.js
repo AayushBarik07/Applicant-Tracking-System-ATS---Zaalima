@@ -1,5 +1,45 @@
 const Application = require('../models/Application');
 const Job = require('../models/Job');
+const fs = require('fs');
+const pdfParse = require('pdf-parse');
+const { analyzeResume, analyzeMatch } = require('../services/geminiService');
+
+// @desc    Trigger AI analysis for an application against the job
+// @route   POST /api/applications/:id/analyze
+// @access  Private (Recruiter only)
+const triggerAnalysis = async (req, res) => {
+  try {
+    const application = await Application.findById(req.params.id).populate('job');
+    
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    // Ensure the recruiter owns the job
+    if (application.job.recruiter.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'Not authorized to analyze this application' });
+    }
+
+    // Call Gemini API to evaluate match
+    const matchAnalysis = await analyzeMatch(application, application.job);
+    
+    if (matchAnalysis) {
+      application.aiScore = matchAnalysis.score;
+      application.matchedSkills = matchAnalysis.matchedSkills || [];
+      application.missingSkills = matchAnalysis.missingSkills || [];
+      // we already have aiSummary from resume parsing, but let's append or overwrite with match summary
+      application.aiSummary = matchAnalysis.summary || application.aiSummary;
+      
+      await application.save();
+      return res.status(200).json({ message: 'Analysis completed successfully', application });
+    } else {
+      return res.status(500).json({ message: 'AI Analysis failed' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error while triggering analysis' });
+  }
+};
 
 // @desc    Apply for a job
 // @route   POST /api/applications
@@ -42,6 +82,47 @@ const createApplication = async (req, res) => {
       resumePath: `/uploads/resumes/${req.file.filename}`,
       status: 'Applied',
     });
+
+    // Background text extraction
+    let extractedText = '';
+    const filePath = req.file.path;
+
+    if (req.file.mimetype === 'application/pdf') {
+      try {
+        if (fs.existsSync(filePath)) {
+          const dataBuffer = fs.readFileSync(filePath);
+          const pdfData = await pdfParse(dataBuffer);
+          extractedText = pdfData.text;
+          
+          if (!extractedText || extractedText.trim() === '') {
+            extractedText = 'WARNING: PDF appears to be empty or unreadable (likely an image-based PDF).';
+          }
+        } else {
+          extractedText = 'ERROR: File is missing from the server.';
+        }
+      } catch (parseError) {
+        console.error('PDF parsing error:', parseError);
+        extractedText = 'ERROR: Failed to parse PDF file.';
+      }
+    } else {
+      extractedText = 'NOTE: Resume is a DOCX file. Text extraction is currently only supported for PDF files.';
+    }
+
+    application.resumeText = extractedText;
+
+    // Call Gemini API to extract structured data
+    const aiAnalysis = await analyzeResume(extractedText);
+    
+    if (aiAnalysis) {
+      application.extractedSkills = aiAnalysis.skills || [];
+      application.experience = aiAnalysis.experience || '';
+      application.education = aiAnalysis.education || '';
+      application.aiSummary = aiAnalysis.summary || '';
+      // We don't have candidateName in the schema (the user is linked), but we parsed it.
+      // aiScore isn't in this prompt, but can be added later.
+    }
+
+    await application.save();
 
     res.status(201).json({ message: 'Application submitted successfully', application });
   } catch (error) {
@@ -159,4 +240,5 @@ module.exports = {
   getApplicationsByJob,
   getApplicationById,
   updateApplicationStatus,
+  triggerAnalysis
 };
