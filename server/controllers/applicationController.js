@@ -1,5 +1,50 @@
 const Application = require('../models/Application');
 const Job = require('../models/Job');
+const fs = require('fs');
+const pdfParse = require('pdf-parse');
+const { analyzeResume, analyzeMatch } = require('../services/geminiService');
+const { 
+  sendApplicationReceivedEmail, 
+  sendStatusChangedEmail, 
+  sendInterviewInvitationEmail 
+} = require('../services/emailService');
+
+// @desc    Trigger AI analysis for an application against the job
+// @route   POST /api/applications/:id/analyze
+// @access  Private (Recruiter only)
+const triggerAnalysis = async (req, res) => {
+  try {
+    const application = await Application.findById(req.params.id).populate('job');
+    
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    // Ensure the recruiter owns the job
+    if (application.job.recruiter.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'Not authorized to analyze this application' });
+    }
+
+    // Call Gemini API to evaluate match
+    const matchAnalysis = await analyzeMatch(application, application.job);
+    
+    if (matchAnalysis) {
+      application.aiScore = matchAnalysis.score;
+      application.matchedSkills = matchAnalysis.matchedSkills || [];
+      application.missingSkills = matchAnalysis.missingSkills || [];
+      // we already have aiSummary from resume parsing, but let's append or overwrite with match summary
+      application.aiSummary = matchAnalysis.summary || application.aiSummary;
+      
+      await application.save();
+      return res.status(200).json({ message: 'Analysis completed successfully', application });
+    } else {
+      return res.status(500).json({ message: 'AI Analysis failed' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error while triggering analysis' });
+  }
+};
 
 // @desc    Apply for a job
 // @route   POST /api/applications
@@ -42,6 +87,50 @@ const createApplication = async (req, res) => {
       resumePath: `/uploads/resumes/${req.file.filename}`,
       status: 'Applied',
     });
+
+    // Background text extraction
+    let extractedText = '';
+    const filePath = req.file.path;
+
+    if (req.file.mimetype === 'application/pdf') {
+      try {
+        if (fs.existsSync(filePath)) {
+          const dataBuffer = fs.readFileSync(filePath);
+          const pdfData = await pdfParse(dataBuffer);
+          extractedText = pdfData.text;
+          
+          if (!extractedText || extractedText.trim() === '') {
+            extractedText = 'WARNING: PDF appears to be empty or unreadable (likely an image-based PDF).';
+          }
+        } else {
+          extractedText = 'ERROR: File is missing from the server.';
+        }
+      } catch (parseError) {
+        console.error('PDF parsing error:', parseError);
+        extractedText = 'ERROR: Failed to parse PDF file.';
+      }
+    } else {
+      extractedText = 'NOTE: Resume is a DOCX file. Text extraction is currently only supported for PDF files.';
+    }
+
+    application.resumeText = extractedText;
+
+    // Call Gemini API to extract structured data
+    const aiAnalysis = await analyzeResume(extractedText);
+    
+    if (aiAnalysis) {
+      application.extractedSkills = aiAnalysis.skills || [];
+      application.experience = aiAnalysis.experience || '';
+      application.education = aiAnalysis.education || '';
+      application.aiSummary = aiAnalysis.summary || '';
+      // We don't have candidateName in the schema (the user is linked), but we parsed it.
+      // aiScore isn't in this prompt, but can be added later.
+    }
+
+    await application.save();
+
+    // Trigger email (non-blocking)
+    sendApplicationReceivedEmail(req.user.email, req.user.name, job.title).catch(err => console.error("Email failed:", err));
 
     res.status(201).json({ message: 'Application submitted successfully', application });
   } catch (error) {
@@ -132,7 +221,7 @@ const updateApplicationStatus = async (req, res) => {
       return res.status(400).json({ message: 'Invalid status' });
     }
 
-    const application = await Application.findById(req.params.id).populate('job');
+    const application = await Application.findById(req.params.id).populate('job').populate('candidate');
     
     if (!application) {
       return res.status(404).json({ message: 'Application not found' });
@@ -146,10 +235,63 @@ const updateApplicationStatus = async (req, res) => {
     application.status = status;
     await application.save();
 
+    // Trigger email (non-blocking)
+    if (application.candidate) {
+      sendStatusChangedEmail(
+        application.candidate.email, 
+        application.candidate.name, 
+        application.job.title, 
+        status
+      ).catch(err => console.error("Status email failed:", err));
+    }
+
     res.status(200).json({ message: 'Status updated successfully', application });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error while updating application status' });
+  }
+};
+
+// @desc    Invite candidate to interview
+// @route   POST /api/applications/:id/interview
+// @access  Private (Recruiter only)
+const inviteToInterview = async (req, res) => {
+  try {
+    const { date, time, message } = req.body;
+    
+    if (!date || !time) {
+      return res.status(400).json({ message: 'Date and time are required' });
+    }
+
+    const application = await Application.findById(req.params.id).populate('job').populate('candidate');
+    
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    if (application.job.recruiter.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'Not authorized to invite this candidate' });
+    }
+
+    application.status = 'Interview';
+    await application.save();
+
+    // Trigger email (non-blocking)
+    if (application.candidate) {
+      sendInterviewInvitationEmail(
+        application.candidate.email, 
+        application.candidate.name, 
+        application.job.title, 
+        date, 
+        time, 
+        message || 'We would like to invite you for an interview.'
+      ).catch(err => console.error("Interview email failed:", err));
+    }
+
+    res.status(200).json({ message: 'Interview invitation sent successfully', application });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error while sending invitation' });
   }
 };
 
@@ -159,4 +301,6 @@ module.exports = {
   getApplicationsByJob,
   getApplicationById,
   updateApplicationStatus,
+  triggerAnalysis,
+  inviteToInterview
 };
