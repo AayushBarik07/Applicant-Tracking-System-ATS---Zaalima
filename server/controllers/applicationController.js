@@ -3,6 +3,11 @@ const Job = require('../models/Job');
 const fs = require('fs');
 const pdfParse = require('pdf-parse');
 const { analyzeResume, analyzeMatch } = require('../services/geminiService');
+const { 
+  sendApplicationReceivedEmail, 
+  sendStatusChangedEmail, 
+  sendInterviewInvitationEmail 
+} = require('../services/emailService');
 
 // @desc    Trigger AI analysis for an application against the job
 // @route   POST /api/applications/:id/analyze
@@ -124,6 +129,9 @@ const createApplication = async (req, res) => {
 
     await application.save();
 
+    // Trigger email (non-blocking)
+    sendApplicationReceivedEmail(req.user.email, req.user.name, job.title).catch(err => console.error("Email failed:", err));
+
     res.status(201).json({ message: 'Application submitted successfully', application });
   } catch (error) {
     console.error(error);
@@ -213,7 +221,7 @@ const updateApplicationStatus = async (req, res) => {
       return res.status(400).json({ message: 'Invalid status' });
     }
 
-    const application = await Application.findById(req.params.id).populate('job');
+    const application = await Application.findById(req.params.id).populate('job').populate('candidate');
     
     if (!application) {
       return res.status(404).json({ message: 'Application not found' });
@@ -227,10 +235,63 @@ const updateApplicationStatus = async (req, res) => {
     application.status = status;
     await application.save();
 
+    // Trigger email (non-blocking)
+    if (application.candidate) {
+      sendStatusChangedEmail(
+        application.candidate.email, 
+        application.candidate.name, 
+        application.job.title, 
+        status
+      ).catch(err => console.error("Status email failed:", err));
+    }
+
     res.status(200).json({ message: 'Status updated successfully', application });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error while updating application status' });
+  }
+};
+
+// @desc    Invite candidate to interview
+// @route   POST /api/applications/:id/interview
+// @access  Private (Recruiter only)
+const inviteToInterview = async (req, res) => {
+  try {
+    const { date, time, message } = req.body;
+    
+    if (!date || !time) {
+      return res.status(400).json({ message: 'Date and time are required' });
+    }
+
+    const application = await Application.findById(req.params.id).populate('job').populate('candidate');
+    
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    if (application.job.recruiter.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'Not authorized to invite this candidate' });
+    }
+
+    application.status = 'Interview';
+    await application.save();
+
+    // Trigger email (non-blocking)
+    if (application.candidate) {
+      sendInterviewInvitationEmail(
+        application.candidate.email, 
+        application.candidate.name, 
+        application.job.title, 
+        date, 
+        time, 
+        message || 'We would like to invite you for an interview.'
+      ).catch(err => console.error("Interview email failed:", err));
+    }
+
+    res.status(200).json({ message: 'Interview invitation sent successfully', application });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error while sending invitation' });
   }
 };
 
@@ -240,5 +301,6 @@ module.exports = {
   getApplicationsByJob,
   getApplicationById,
   updateApplicationStatus,
-  triggerAnalysis
+  triggerAnalysis,
+  inviteToInterview
 };

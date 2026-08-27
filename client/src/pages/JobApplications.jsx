@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
 import CandidateRanking from '../components/CandidateRanking';
+import InterviewDialog from '../components/InterviewDialog';
 
 const COLUMNS = ['Applied', 'Interview', 'Offered', 'Rejected'];
 
@@ -14,6 +15,7 @@ const JobApplications = () => {
   const queryClient = useQueryClient();
   const [errorMsg, setErrorMsg] = useState('');
   const [view, setView] = useState('board'); // 'board' | 'ranking'
+  const [interviewAppId, setInterviewAppId] = useState(null);
 
   const api = axios.create({ baseURL: 'http://localhost:5000/api' });
 // ... existing axios config ...
@@ -129,6 +131,7 @@ const JobApplications = () => {
         <CandidateRanking 
           applications={applications} 
           onAnalyze={(id) => triggerAnalysis.mutate(id)} 
+          onInvite={(id) => setInterviewAppId(id)}
         />
       ) : (
         <Box>
@@ -211,6 +214,13 @@ const JobApplications = () => {
                     >
                       {app.aiScore !== undefined ? 'Re-Analyze' : 'Analyze AI'}
                     </Button>
+                    <Button 
+                      size="small" 
+                      color="primary"
+                      onClick={() => setInterviewAppId(app._id)}
+                    >
+                      Invite
+                    </Button>
                   </CardActions>
                 </Card>
               ))}
@@ -225,6 +235,15 @@ const JobApplications = () => {
         ))}
       </Box>
       </Box>
+      )}
+
+      {interviewAppId && (
+        <InterviewDialog 
+          open={!!interviewAppId} 
+          onClose={() => setInterviewAppId(null)} 
+          application={applications?.find(a => a._id === interviewAppId)}
+          jobId={jobId}
+        />
       )}
     </Container>
   );

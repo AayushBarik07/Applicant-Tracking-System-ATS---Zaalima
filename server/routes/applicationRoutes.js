@@ -8,7 +8,8 @@ const {
   getApplicationsByJob,
   getApplicationById,
   updateApplicationStatus,
-  triggerAnalysis
+  triggerAnalysis,
+  inviteToInterview
 } = require('../controllers/applicationController');
 
 // @route   POST /api/applications
@@ -25,6 +26,11 @@ router.get('/my', protect, authorize('candidate'), getMyApplications);
 // @desc    Trigger AI analysis for an application against the job
 // @access  Private (Recruiter only)
 router.post('/:id/analyze', protect, authorize('recruiter'), triggerAnalysis);
+
+// @route   POST /api/applications/:id/interview
+// @desc    Invite candidate to interview
+// @access  Private (Recruiter only)
+router.post('/:id/interview', protect, authorize('recruiter'), inviteToInterview);
 
 // @route   GET /api/applications/job/:jobId
 // @desc    Get all applications for a specific job

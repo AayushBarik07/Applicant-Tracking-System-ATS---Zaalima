@@ -18,7 +18,7 @@ import {
   Button
 } from '@mui/material';
 
-const CandidateRanking = ({ applications, onAnalyze }) => {
+const CandidateRanking = ({ applications, onAnalyze, onInvite }) => {
   const [minScore, setMinScore] = useState(0);
   const [statusFilter, setStatusFilter] = useState('All');
   const [skillFilter, setSkillFilter] = useState('');
@@ -145,13 +145,25 @@ const CandidateRanking = ({ applications, onAnalyze }) => {
                   <TableCell>
                     <Typography fontWeight="bold">{app.candidate?.name}</Typography>
                     <Typography variant="body2" color="textSecondary">{app.candidate?.email}</Typography>
-                    <Button 
-                      size="small" 
-                      onClick={() => window.open(`http://localhost:5000${app.resumePath}`, '_blank')}
-                      sx={{ mt: 1, p: 0, minWidth: 'auto' }}
-                    >
-                      View Resume
-                    </Button>
+                    <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                      <Button 
+                        size="small" 
+                        variant="outlined"
+                        onClick={() => window.open(`http://localhost:5000${app.resumePath}`, '_blank')}
+                        sx={{ p: 0.5, minWidth: 'auto' }}
+                      >
+                        Resume
+                      </Button>
+                      <Button 
+                        size="small" 
+                        color="primary"
+                        variant="contained"
+                        onClick={() => onInvite(app._id)}
+                        sx={{ p: 0.5, minWidth: 'auto' }}
+                      >
+                        Invite
+                      </Button>
+                    </Box>
                   </TableCell>
                   
                   <TableCell>

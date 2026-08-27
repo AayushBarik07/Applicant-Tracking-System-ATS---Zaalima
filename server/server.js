@@ -8,16 +8,23 @@ const User = require('./models/User');
 const Job = require('./models/Job');
 const Application = require('./models/Application');
 
+const helmet = require('helmet');
+
 // Load env vars
-dotenv.config({ path: '../.env' });
+const path = require('path');
+dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(helmet());
+app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" })); // Allow serving images/uploads cross-origin if needed
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:5173'], // Restrict to frontend origins
+  credentials: true
+}));
 app.use(express.json());
-const path = require('path');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
@@ -44,3 +51,5 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/ats_db')
   .catch((err) => {
     console.error('MongoDB connection error:', err);
   });
+
+module.exports = app;
