@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const upload = require('../middleware/uploadMiddleware');
+const { upload } = require('../middleware/uploadMiddleware');
 const { protect, authorize } = require('../middleware/auth');
 
 // @desc    Upload candidate resume
@@ -17,12 +17,12 @@ router.post('/resume', protect, authorize('candidate'), (req, res) => {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    // Return the safe path to the file.
-    // We only return the relative path to be stored in the database.
-    const filePath = `/uploads/resumes/${req.file.filename}`;
+    // Return the S3 key or location to the file.
+    // We store the S3 key in the database so we can generate presigned URLs later.
+    const filePath = req.file.key; // multer-s3 provides the object key
     
     res.status(200).json({
-      message: 'Resume uploaded successfully',
+      message: 'Resume uploaded successfully to S3',
       filePath: filePath,
     });
   });

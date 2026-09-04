@@ -1,25 +1,28 @@
 const multer = require('multer');
+const multerS3 = require('multer-s3');
+const { S3Client } = require('@aws-sdk/client-s3');
 const path = require('path');
-const fs = require('fs');
 const crypto = require('crypto');
 
-// Ensure upload directory exists
-const uploadDir = path.join(__dirname, '../uploads/resumes');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Configure S3 Client
+const s3 = new S3Client({
+  region: process.env.AWS_REGION || 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  }
+});
 
-// Configure storage
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    // Generate a safe unique filename: random hex + extension
-    // DO NOT use file.originalname to prevent directory traversal or malicious names
+// Configure Multer S3 Storage
+const storage = multerS3({
+  s3: s3,
+  bucket: process.env.AWS_BUCKET_NAME || 'zaalima-ats-resumes',
+  // Do not use ACL 'public-read' to keep resumes secure
+  contentType: multerS3.AUTO_CONTENT_TYPE,
+  key: function (req, file, cb) {
     const uniqueSuffix = crypto.randomBytes(16).toString('hex');
     const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `${uniqueSuffix}${ext}`);
+    cb(null, `resumes/${uniqueSuffix}${ext}`);
   }
 });
 
@@ -47,4 +50,5 @@ const upload = multer({
   }
 });
 
-module.exports = upload;
+// Export s3 client as well to generate presigned URLs later
+module.exports = { upload, s3 };

@@ -81,36 +81,51 @@ const createApplication = async (req, res) => {
       return res.status(400).json({ message: 'You have already applied for this job' });
     }
 
+    // req.file.key is provided by multer-s3
+    const s3Key = req.file.key;
+
     const application = await Application.create({
       candidate: req.user._id,
       job: jobId,
-      resumePath: `/uploads/resumes/${req.file.filename}`,
+      resumePath: s3Key, // Store the S3 key instead of local path
       status: 'Applied',
     });
 
-    // Background text extraction
+    // Background text extraction via Python Microservice
     let extractedText = '';
-    const filePath = req.file.path;
+    
+    try {
+      const { GetObjectCommand } = require('@aws-sdk/client-s3');
+      const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+      const { s3 } = require('../middleware/uploadMiddleware');
+      
+      // Generate a presigned URL valid for 5 minutes
+      const command = new GetObjectCommand({
+        Bucket: process.env.AWS_BUCKET_NAME || 'zaalima-ats-resumes',
+        Key: s3Key,
+      });
+      const presignedUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
 
-    if (req.file.mimetype === 'application/pdf') {
-      try {
-        if (fs.existsSync(filePath)) {
-          const dataBuffer = fs.readFileSync(filePath);
-          const pdfData = await pdfParse(dataBuffer);
-          extractedText = pdfData.text;
-          
-          if (!extractedText || extractedText.trim() === '') {
-            extractedText = 'WARNING: PDF appears to be empty or unreadable (likely an image-based PDF).';
-          }
-        } else {
-          extractedText = 'ERROR: File is missing from the server.';
-        }
-      } catch (parseError) {
-        console.error('PDF parsing error:', parseError);
-        extractedText = 'ERROR: Failed to parse PDF file.';
+      // Send to Python Microservice
+      // In Node 18+, global.fetch is available. We'll use the global fetch API
+      const response = await fetch('http://localhost:5001/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: presignedUrl, filename: req.file.originalname })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        extractedText = data.text;
+      } else {
+        const errData = await response.json();
+        console.error('Python parsing error:', errData);
+        extractedText = `ERROR: Failed to parse document. ${errData.error || ''}`;
       }
-    } else {
-      extractedText = 'NOTE: Resume is a DOCX file. Text extraction is currently only supported for PDF files.';
+      
+    } catch (parseError) {
+      console.error('Extraction flow error:', parseError);
+      extractedText = 'ERROR: Failed to extract text from document via Microservice.';
     }
 
     application.resumeText = extractedText;
@@ -123,8 +138,6 @@ const createApplication = async (req, res) => {
       application.experience = aiAnalysis.experience || '';
       application.education = aiAnalysis.education || '';
       application.aiSummary = aiAnalysis.summary || '';
-      // We don't have candidateName in the schema (the user is linked), but we parsed it.
-      // aiScore isn't in this prompt, but can be added later.
     }
 
     await application.save();
