@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect, authorize } = require('../middleware/auth');
-const upload = require('../middleware/uploadMiddleware');
+const { upload } = require('../middleware/uploadMiddleware');
 const { 
   createApplication, 
   getMyApplications,
@@ -9,13 +9,23 @@ const {
   getApplicationById,
   updateApplicationStatus,
   triggerAnalysis,
-  inviteToInterview
+  inviteToInterview,
+  respondToInterview,
+  respondToOffer
 } = require('../controllers/applicationController');
 
 // @route   POST /api/applications
 // @desc    Apply for a job (Uploads resume and creates application)
 // @access  Private (Candidate only)
-router.post('/', protect, authorize('candidate'), upload.single('resume'), createApplication);
+router.post('/', protect, authorize('candidate'), (req, res, next) => {
+  upload.single('resume')(req, res, (err) => {
+    if (err) {
+      console.error('Multer/Cloudinary Error:', err);
+      return res.status(500).json({ message: err.message || 'File upload failed' });
+    }
+    next();
+  });
+}, createApplication);
 
 // @route   GET /api/applications/my
 // @desc    Get logged-in candidate's applications
@@ -46,5 +56,15 @@ router.get('/:id', protect, getApplicationById);
 // @desc    Update application status
 // @access  Private (Recruiter only)
 router.patch('/:id/status', protect, authorize('recruiter'), updateApplicationStatus);
+
+// @route   PATCH /api/applications/:id/interview-response
+// @desc    Candidate responds to interview
+// @access  Private (Candidate only)
+router.patch('/:id/interview-response', protect, authorize('candidate'), respondToInterview);
+
+// @route   PATCH /api/applications/:id/offer-response
+// @desc    Candidate responds to offer
+// @access  Private (Candidate only)
+router.patch('/:id/offer-response', protect, authorize('candidate'), respondToOffer);
 
 module.exports = router;

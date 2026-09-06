@@ -1,25 +1,31 @@
 const multer = require('multer');
+const { v2: cloudinary } = require('cloudinary');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const path = require('path');
-const fs = require('fs');
 const crypto = require('crypto');
 
-// Ensure upload directory exists
-const uploadDir = path.join(__dirname, '../uploads/resumes');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
-// Configure storage
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    // Generate a safe unique filename: random hex + extension
-    // DO NOT use file.originalname to prevent directory traversal or malicious names
+// Configure Cloudinary Storage for Multer
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req, file) => {
     const uniqueSuffix = crypto.randomBytes(16).toString('hex');
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `${uniqueSuffix}${ext}`);
+    const ext = path.extname(file.originalname).toLowerCase().replace('.', '');
+    
+    // For PDFs and DOCX files, Cloudinary needs resource_type: 'raw' or 'auto'
+    // 'raw' is best for non-image files like docx and pdf.
+    return {
+      folder: 'zaalima_resumes',
+      public_id: `${uniqueSuffix}`,
+      resource_type: 'raw',
+      format: ext // Forces the extension
+    };
   }
 });
 
@@ -47,4 +53,4 @@ const upload = multer({
   }
 });
 
-module.exports = upload;
+module.exports = { upload };

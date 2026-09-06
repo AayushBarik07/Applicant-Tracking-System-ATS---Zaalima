@@ -81,36 +81,40 @@ const createApplication = async (req, res) => {
       return res.status(400).json({ message: 'You have already applied for this job' });
     }
 
+    // req.file.path is provided by CloudinaryStorage and contains the URL
+    const cloudinaryUrl = req.file.path;
+
     const application = await Application.create({
       candidate: req.user._id,
       job: jobId,
-      resumePath: `/uploads/resumes/${req.file.filename}`,
+      resumePath: cloudinaryUrl, // Store the Cloudinary URL
       status: 'Applied',
     });
 
-    // Background text extraction
+    // Background text extraction via Python Microservice
     let extractedText = '';
-    const filePath = req.file.path;
-
-    if (req.file.mimetype === 'application/pdf') {
-      try {
-        if (fs.existsSync(filePath)) {
-          const dataBuffer = fs.readFileSync(filePath);
-          const pdfData = await pdfParse(dataBuffer);
-          extractedText = pdfData.text;
-          
-          if (!extractedText || extractedText.trim() === '') {
-            extractedText = 'WARNING: PDF appears to be empty or unreadable (likely an image-based PDF).';
-          }
-        } else {
-          extractedText = 'ERROR: File is missing from the server.';
-        }
-      } catch (parseError) {
-        console.error('PDF parsing error:', parseError);
-        extractedText = 'ERROR: Failed to parse PDF file.';
+    
+    try {
+      // Send to Python Microservice
+      // In Node 18+, global.fetch is available. We'll use the global fetch API
+      const response = await fetch('http://localhost:5001/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: cloudinaryUrl, filename: req.file.originalname })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        extractedText = data.text;
+      } else {
+        const errData = await response.json();
+        console.error('Python parsing error:', errData);
+        extractedText = `ERROR: Failed to parse document. ${errData.error || ''}`;
       }
-    } else {
-      extractedText = 'NOTE: Resume is a DOCX file. Text extraction is currently only supported for PDF files.';
+      
+    } catch (parseError) {
+      console.error('Extraction flow error:', parseError);
+      extractedText = 'ERROR: Failed to extract text from document via Microservice.';
     }
 
     application.resumeText = extractedText;
@@ -123,8 +127,6 @@ const createApplication = async (req, res) => {
       application.experience = aiAnalysis.experience || '';
       application.education = aiAnalysis.education || '';
       application.aiSummary = aiAnalysis.summary || '';
-      // We don't have candidateName in the schema (the user is linked), but we parsed it.
-      // aiScore isn't in this prompt, but can be added later.
     }
 
     await application.save();
@@ -295,6 +297,76 @@ const inviteToInterview = async (req, res) => {
   }
 };
 
+// @desc    Candidate responds to interview
+// @route   PATCH /api/applications/:id/interview-response
+// @access  Private (Candidate only)
+const respondToInterview = async (req, res) => {
+  try {
+    const { response } = req.body; // 'Accepted' or 'Declined'
+    
+    if (!['Accepted', 'Declined'].includes(response)) {
+      return res.status(400).json({ message: 'Invalid response' });
+    }
+
+    const application = await Application.findById(req.params.id);
+    
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    if (application.candidate.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    application.candidateInterviewResponse = response;
+    
+    if (response === 'Declined') {
+      application.status = 'Rejected';
+    }
+
+    await application.save();
+    res.status(200).json({ message: `Interview ${response.toLowerCase()} successfully`, application });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error processing response' });
+  }
+};
+
+// @desc    Candidate responds to offer
+// @route   PATCH /api/applications/:id/offer-response
+// @access  Private (Candidate only)
+const respondToOffer = async (req, res) => {
+  try {
+    const { response } = req.body; // 'Accepted' or 'Declined'
+    
+    if (!['Accepted', 'Declined'].includes(response)) {
+      return res.status(400).json({ message: 'Invalid response' });
+    }
+
+    const application = await Application.findById(req.params.id);
+    
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    if (application.candidate.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    application.candidateOfferResponse = response;
+    
+    if (response === 'Declined') {
+      application.status = 'Rejected';
+    }
+
+    await application.save();
+    res.status(200).json({ message: `Offer ${response.toLowerCase()} successfully`, application });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error processing response' });
+  }
+};
+
 module.exports = {
   createApplication,
   getMyApplications,
@@ -302,5 +374,7 @@ module.exports = {
   getApplicationById,
   updateApplicationStatus,
   triggerAnalysis,
-  inviteToInterview
+  inviteToInterview,
+  respondToInterview,
+  respondToOffer
 };
