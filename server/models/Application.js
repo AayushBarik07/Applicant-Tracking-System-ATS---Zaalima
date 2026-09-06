@@ -23,6 +23,16 @@ const applicationSchema = new mongoose.Schema({
     enum: ['Applied', 'Interview', 'Offered', 'Rejected'],
     default: 'Applied',
   },
+  candidateInterviewResponse: {
+    type: String,
+    enum: ['Pending', 'Accepted', 'Declined'],
+    default: 'Pending',
+  },
+  candidateOfferResponse: {
+    type: String,
+    enum: ['Pending', 'Accepted', 'Declined'],
+    default: 'Pending',
+  },
   aiScore: {
     type: Number,
   },

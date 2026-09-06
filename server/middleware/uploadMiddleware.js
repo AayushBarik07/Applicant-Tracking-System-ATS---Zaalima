@@ -1,28 +1,31 @@
 const multer = require('multer');
-const multerS3 = require('multer-s3');
-const { S3Client } = require('@aws-sdk/client-s3');
+const { v2: cloudinary } = require('cloudinary');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const path = require('path');
 const crypto = require('crypto');
 
-// Configure S3 Client
-const s3 = new S3Client({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  }
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Configure Multer S3 Storage
-const storage = multerS3({
-  s3: s3,
-  bucket: process.env.AWS_BUCKET_NAME || 'zaalima-ats-resumes',
-  // Do not use ACL 'public-read' to keep resumes secure
-  contentType: multerS3.AUTO_CONTENT_TYPE,
-  key: function (req, file, cb) {
+// Configure Cloudinary Storage for Multer
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req, file) => {
     const uniqueSuffix = crypto.randomBytes(16).toString('hex');
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `resumes/${uniqueSuffix}${ext}`);
+    const ext = path.extname(file.originalname).toLowerCase().replace('.', '');
+    
+    // For PDFs and DOCX files, Cloudinary needs resource_type: 'raw' or 'auto'
+    // 'raw' is best for non-image files like docx and pdf.
+    return {
+      folder: 'zaalima_resumes',
+      public_id: `${uniqueSuffix}`,
+      resource_type: 'raw',
+      format: ext // Forces the extension
+    };
   }
 });
 
@@ -50,5 +53,4 @@ const upload = multer({
   }
 });
 
-// Export s3 client as well to generate presigned URLs later
-module.exports = { upload, s3 };
+module.exports = { upload };

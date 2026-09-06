@@ -7,6 +7,10 @@ import os
 
 app = Flask(__name__)
 
+@app.route('/', methods=['GET'])
+def health_check():
+    return jsonify({"status": "Python ATS Microservice is running securely!"}), 200
+
 @app.route('/parse', methods=['POST'])
 def parse_resume():
     data = request.get_json()
@@ -18,7 +22,7 @@ def parse_resume():
     filename = data.get('filename', 'unknown.pdf').lower()
     
     try:
-        # Download the file from the presigned S3 URL
+        # Download the file from the Cloudinary URL
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         
@@ -47,7 +51,7 @@ def parse_resume():
         return jsonify({"text": extracted_text.strip()}), 200
         
     except requests.exceptions.RequestException as e:
-        return jsonify({"error": f"Failed to download file from S3: {str(e)}"}), 502
+        return jsonify({"error": f"Failed to download file from Cloudinary: {str(e)}"}), 502
     except Exception as e:
         return jsonify({"error": f"Failed to parse document: {str(e)}"}), 500
 

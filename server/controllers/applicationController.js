@@ -81,13 +81,13 @@ const createApplication = async (req, res) => {
       return res.status(400).json({ message: 'You have already applied for this job' });
     }
 
-    // req.file.key is provided by multer-s3
-    const s3Key = req.file.key;
+    // req.file.path is provided by CloudinaryStorage and contains the URL
+    const cloudinaryUrl = req.file.path;
 
     const application = await Application.create({
       candidate: req.user._id,
       job: jobId,
-      resumePath: s3Key, // Store the S3 key instead of local path
+      resumePath: cloudinaryUrl, // Store the Cloudinary URL
       status: 'Applied',
     });
 
@@ -95,23 +95,12 @@ const createApplication = async (req, res) => {
     let extractedText = '';
     
     try {
-      const { GetObjectCommand } = require('@aws-sdk/client-s3');
-      const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
-      const { s3 } = require('../middleware/uploadMiddleware');
-      
-      // Generate a presigned URL valid for 5 minutes
-      const command = new GetObjectCommand({
-        Bucket: process.env.AWS_BUCKET_NAME || 'zaalima-ats-resumes',
-        Key: s3Key,
-      });
-      const presignedUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
-
       // Send to Python Microservice
       // In Node 18+, global.fetch is available. We'll use the global fetch API
       const response = await fetch('http://localhost:5001/parse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: presignedUrl, filename: req.file.originalname })
+        body: JSON.stringify({ url: cloudinaryUrl, filename: req.file.originalname })
       });
       
       if (response.ok) {
@@ -308,6 +297,76 @@ const inviteToInterview = async (req, res) => {
   }
 };
 
+// @desc    Candidate responds to interview
+// @route   PATCH /api/applications/:id/interview-response
+// @access  Private (Candidate only)
+const respondToInterview = async (req, res) => {
+  try {
+    const { response } = req.body; // 'Accepted' or 'Declined'
+    
+    if (!['Accepted', 'Declined'].includes(response)) {
+      return res.status(400).json({ message: 'Invalid response' });
+    }
+
+    const application = await Application.findById(req.params.id);
+    
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    if (application.candidate.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    application.candidateInterviewResponse = response;
+    
+    if (response === 'Declined') {
+      application.status = 'Rejected';
+    }
+
+    await application.save();
+    res.status(200).json({ message: `Interview ${response.toLowerCase()} successfully`, application });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error processing response' });
+  }
+};
+
+// @desc    Candidate responds to offer
+// @route   PATCH /api/applications/:id/offer-response
+// @access  Private (Candidate only)
+const respondToOffer = async (req, res) => {
+  try {
+    const { response } = req.body; // 'Accepted' or 'Declined'
+    
+    if (!['Accepted', 'Declined'].includes(response)) {
+      return res.status(400).json({ message: 'Invalid response' });
+    }
+
+    const application = await Application.findById(req.params.id);
+    
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    if (application.candidate.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    application.candidateOfferResponse = response;
+    
+    if (response === 'Declined') {
+      application.status = 'Rejected';
+    }
+
+    await application.save();
+    res.status(200).json({ message: `Offer ${response.toLowerCase()} successfully`, application });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error processing response' });
+  }
+};
+
 module.exports = {
   createApplication,
   getMyApplications,
@@ -315,5 +374,7 @@ module.exports = {
   getApplicationById,
   updateApplicationStatus,
   triggerAnalysis,
-  inviteToInterview
+  inviteToInterview,
+  respondToInterview,
+  respondToOffer
 };

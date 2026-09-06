@@ -14,7 +14,7 @@ const analyzeResume = async (resumeText) => {
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
     // Using a fast model suitable for text processing
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `
       You are an expert HR assistant. Analyze the following resume text and extract the key information into a structured JSON format.
@@ -60,7 +60,7 @@ const analyzeMatch = async (candidate, job) => {
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `
       You are an expert HR recruitment assistant. Your task is to evaluate a candidate's fit for a specific job posting.
