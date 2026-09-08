@@ -21,7 +21,7 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" })); // Allow serving images/uploads cross-origin if needed
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173'], // Restrict to frontend origins
+  origin: true, // Allow all origins for the Vercel deployment
   credentials: true
 }));
 app.use(express.json());
