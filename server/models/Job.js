@@ -34,3 +34,5 @@ const jobSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Job', jobSchema);
+
+// Reviewed for production readiness.

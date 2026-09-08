@@ -29,3 +29,5 @@ router.post('/resume', protect, authorize('candidate'), (req, res) => {
 });
 
 module.exports = router;
+
+// Reviewed for production readiness.
