@@ -20,7 +20,7 @@ const JobApplications = () => {
   const [interviewAppId, setInterviewAppId] = useState(null);
   const [aiBreakdownAppId, setAiBreakdownAppId] = useState(null);
 
-  const api = axios.create({ baseURL: 'http://localhost:5000/api' });
+  const api = axios.create({ baseURL: (import.meta.env.VITE_API_URL || '${import.meta.env.VITE_API_URL || (import.meta.env.VITE_BASE_URL || '${import.meta.env.VITE_BASE_URL || 'http://localhost:5000'}') + '/api'}')  });
 // ... existing axios config ...
   api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
@@ -251,7 +251,7 @@ const JobApplications = () => {
                   </CardContent>
                   <CardActions sx={{ px: 2, pb: 2, pt: 1, flexDirection: 'column', alignItems: 'stretch', gap: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                      <Button size="small" sx={{ minWidth: 'auto', p: 0.5, fontSize: '0.75rem' }} color="inherit" onClick={() => window.open(app.resumePath.startsWith('http') ? app.resumePath : `http://localhost:5000${app.resumePath}`, '_blank')}>
+                      <Button size="small" sx={{ minWidth: 'auto', p: 0.5, fontSize: '0.75rem' }} color="inherit" onClick={() => window.open(app.resumePath.startsWith('http') ? app.resumePath : `${import.meta.env.VITE_BASE_URL || 'http://localhost:5000'}${app.resumePath}`, '_blank')}>
                         📄 View Resume
                       </Button>
                       <Button size="small" sx={{ minWidth: 'auto', p: 0.5, fontSize: '0.75rem' }} color="primary" onClick={() => triggerAnalysis.mutate(app._id)} disabled={triggerAnalysis.isPending}>
