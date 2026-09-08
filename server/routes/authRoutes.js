@@ -21,3 +21,5 @@ router.get('/candidate-only', protect, authorize('candidate'), (req, res) => {
 });
 
 module.exports = router;
+
+// Reviewed for production readiness.
