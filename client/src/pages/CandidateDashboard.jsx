@@ -14,7 +14,7 @@ const CandidateDashboard = () => {
 
   const fetchMyApplications = async () => {
     const token = localStorage.getItem('token');
-    const { data } = await axios.get((import.meta.env.VITE_API_URL || (import.meta.env.VITE_BASE_URL || 'http://localhost:5000')/api')/applications/my', {
+    const { data } = await axios.get('http://localhost:5000/api/applications/my', {
       headers: { Authorization: `Bearer ${token}` }
     });
     return data;
@@ -28,7 +28,7 @@ const CandidateDashboard = () => {
   const respondToInterview = useMutation({
     mutationFn: async ({ id, response }) => {
       const token = localStorage.getItem('token');
-      await axios.patch(${import.meta.env.VITE_API_URL || (import.meta.env.VITE_BASE_URL || 'http://localhost:5000')/api'}/applications/${id}/interview-response`, { response }, {
+      await axios.patch(`http://localhost:5000/api/applications/${id}/interview-response`, { response }, {
         headers: { Authorization: `Bearer ${token}` }
       });
     },
@@ -40,7 +40,7 @@ const CandidateDashboard = () => {
   const respondToOffer = useMutation({
     mutationFn: async ({ id, response }) => {
       const token = localStorage.getItem('token');
-      await axios.patch(${import.meta.env.VITE_API_URL || (import.meta.env.VITE_BASE_URL || 'http://localhost:5000')/api'}/applications/${id}/offer-response`, { response }, {
+      await axios.patch(`http://localhost:5000/api/applications/${id}/offer-response`, { response }, {
         headers: { Authorization: `Bearer ${token}` }
       });
     },
