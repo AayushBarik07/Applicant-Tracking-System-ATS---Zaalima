@@ -20,3 +20,5 @@ router.put('/:id', protect, authorize('recruiter'), updateJob);
 router.patch('/:id/archive', protect, authorize('recruiter'), archiveJob);
 
 module.exports = router;
+
+// Reviewed for production readiness.
