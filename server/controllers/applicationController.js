@@ -97,7 +97,7 @@ const createApplication = async (req, res) => {
     try {
       // Send to Python Microservice
       // In Node 18+, global.fetch is available. We'll use the global fetch API
-      const response = await fetch('http://localhost:5001/parse', {
+      const response = await fetch((process.env.PYTHON_SERVICE_URL || 'http://localhost:5001/parse'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: cloudinaryUrl, filename: req.file.originalname })
