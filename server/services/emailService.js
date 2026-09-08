@@ -1,34 +1,44 @@
-const nodemailer = require('nodemailer');
-
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_APP_PASSWORD,
-    },
-  });
-};
-
 const sendEmail = async (to, subject, html) => {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD || process.env.EMAIL_USER === 'your_email@gmail.com') {
-    console.warn(`[Email Service Skipped] Credentials not configured. Would have sent: "${subject}" to ${to}`);
+  const serviceId = process.env.EMAILJS_SERVICE_ID;
+  const templateId = process.env.EMAILJS_TEMPLATE_ID;
+  const publicKey = process.env.EMAILJS_PUBLIC_KEY;
+
+  if (!serviceId || !templateId || !publicKey) {
+    console.warn(`[EmailJS Skipped] Credentials not configured. Would have sent: "${subject}" to ${to}`);
     return false;
   }
 
+  const data = {
+    service_id: serviceId,
+    template_id: templateId,
+    user_id: publicKey,
+    template_params: {
+      to_email: to,
+      subject: subject,
+      message: html,
+    },
+  };
+
   try {
-    const transporter = createTransporter();
-    const info = await transporter.sendMail({
-      from: `"Zaalima ATS" <${process.env.EMAIL_USER}>`,
-      to,
-      subject,
-      html,
+    const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
     });
-    console.log(`Email sent to ${to}: ${info.messageId}`);
-    return true;
+
+    if (response.ok) {
+      console.log(`EmailJS: Email successfully sent to ${to}`);
+      return true;
+    } else {
+      const errorText = await response.text();
+      console.error(`EmailJS Error sending to ${to}:`, errorText);
+      return false;
+    }
   } catch (error) {
-    console.error(`Error sending email to ${to}:`, error);
-    return false; // Return false but don't throw to prevent crashing
+    console.error(`EmailJS Request failed to ${to}:`, error);
+    return false;
   }
 };
 
@@ -86,5 +96,3 @@ module.exports = {
   sendStatusChangedEmail,
   sendInterviewInvitationEmail
 };
-
-// Reviewed for production readiness.
