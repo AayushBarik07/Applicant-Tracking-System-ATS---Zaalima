@@ -4,7 +4,7 @@ const sendEmail = async (to, subject, html) => {
   const publicKey = process.env.EMAILJS_PUBLIC_KEY;
 
   if (!serviceId || !templateId || !publicKey) {
-    console.warn([EmailJS Skipped] Credentials not configured. Would have sent:  + "" +  to  + \);
+    console.warn([EmailJS Skipped] Credentials not configured. Would have sent: " + subject + " to  + to);
     return false;
   }
 
@@ -29,24 +29,24 @@ const sendEmail = async (to, subject, html) => {
     });
 
     if (response.ok) {
-      console.log(EmailJS: Email successfully sent to  + \);
+      console.log(EmailJS: Email successfully sent to  + to);
       return true;
     } else {
       const errorText = await response.text();
-      console.error(EmailJS Error sending to  + \:, errorText);
+      console.error(EmailJS Error sending to  + to + :, errorText);
       return false;
     }
   } catch (error) {
-    console.error(EmailJS Request failed to  + \:, error);
+    console.error(EmailJS Request failed to  + to + :, error);
     return false;
   }
 };
 
 const sendApplicationReceivedEmail = async (candidateEmail, candidateName, jobTitle) => {
-  const subject = Application Received:  + \;
+  const subject = Application Received:  + jobTitle;
   const html = 
-    <h2>Hi  + \,</h2>
-    <p>We have successfully received your application for the <strong> + \</strong> position.</p>
+    <h2>Hi  + candidateName + ,</h2>
+    <p>We have successfully received your application for the <strong> + jobTitle + </strong> position.</p>
     <p>Our recruitment team will review your profile and get back to you soon.</p>
     <br/>
     <p>Best regards,</p>
@@ -56,11 +56,11 @@ const sendApplicationReceivedEmail = async (candidateEmail, candidateName, jobTi
 };
 
 const sendStatusChangedEmail = async (candidateEmail, candidateName, jobTitle, newStatus) => {
-  const subject = Application Update:  + \;
+  const subject = Application Update:  + jobTitle;
   const html = 
-    <h2>Hi  + \,</h2>
-    <p>There is an update regarding your application for the <strong> + \</strong> position.</p>
-    <p>Your application status is now: <strong> + \</strong></p>
+    <h2>Hi  + candidateName + ,</h2>
+    <p>There is an update regarding your application for the <strong> + jobTitle + </strong> position.</p>
+    <p>Your application status is now: <strong> + newStatus + </strong></p>
     <br/>
     <p>Best regards,</p>
     <p>The Recruitment Team</p>
@@ -69,19 +69,19 @@ const sendStatusChangedEmail = async (candidateEmail, candidateName, jobTitle, n
 };
 
 const sendInterviewInvitationEmail = async (candidateEmail, candidateName, jobTitle, date, time, message) => {
-  const subject = Interview Invitation:  + \;
+  const subject = Interview Invitation:  + jobTitle;
   const html = 
-    <h2>Hi  + \,</h2>
-    <p>We are pleased to invite you to an interview for the <strong> + \</strong> position!</p>
+    <h2>Hi  + candidateName + ,</h2>
+    <p>We are pleased to invite you to an interview for the <strong> + jobTitle + </strong> position!</p>
     
     <h3>Interview Details:</h3>
     <ul>
-      <li><strong>Date:</strong>  + \</li>
-      <li><strong>Time:</strong>  + \</li>
+      <li><strong>Date:</strong>  + date + </li>
+      <li><strong>Time:</strong>  + time + </li>
     </ul>
     
     <h3>Message from the Recruiter:</h3>
-    <p><em> + \</em></p>
+    <p><em> + message + </em></p>
     
     <br/>
     <p>Looking forward to speaking with you!</p>
