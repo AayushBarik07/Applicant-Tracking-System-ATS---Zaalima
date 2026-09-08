@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import ResumeUpload from '../components/ResumeUpload';
 
 const fetchJobById = async (id) => {
-  const { data } = await axios.get(`http://localhost:5000/api/jobs/${id}`);
+  const { data } = await axios.get(${import.meta.env.VITE_API_URL || (import.meta.env.VITE_BASE_URL || 'http://localhost:5000')/api'}/jobs/${id}`);
   return data;
 };
 
