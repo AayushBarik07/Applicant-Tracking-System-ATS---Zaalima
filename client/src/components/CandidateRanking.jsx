@@ -149,7 +149,7 @@ const CandidateRanking = ({ applications, onAnalyze, onInvite }) => {
                       <Button 
                         size="small" 
                         variant="outlined"
-                        onClick={() => window.open(`http://localhost:5000${app.resumePath}`, '_blank')}
+                        onClick={() => window.open(`${import.meta.env.VITE_BASE_URL || 'http://localhost:5000'}${app.resumePath}`, '_blank')}
                         sx={{ p: 0.5, minWidth: 'auto' }}
                       >
                         Resume

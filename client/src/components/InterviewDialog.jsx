@@ -24,7 +24,7 @@ const InterviewDialog = ({ open, onClose, application, jobId }) => {
     mutationFn: async () => {
       const token = localStorage.getItem('token');
       await axios.post(
-        `http://localhost:5000/api/applications/${application._id}/interview`, 
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/applications/${application._id}/interview`, 
         { date, time, message },
         { headers: { Authorization: `Bearer ${token}` } }
       );
