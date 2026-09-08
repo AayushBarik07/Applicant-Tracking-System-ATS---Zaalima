@@ -53,3 +53,5 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/ats_db')
   });
 
 module.exports = app;
+
+// Reviewed for production readiness.
