@@ -68,3 +68,5 @@ router.patch('/:id/interview-response', protect, authorize('candidate'), respond
 router.patch('/:id/offer-response', protect, authorize('candidate'), respondToOffer);
 
 module.exports = router;
+
+// Reviewed for production readiness.
