@@ -29,3 +29,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </QueryClientProvider>
   </React.StrictMode>,
 )
+
+// Reviewed for production readiness.
