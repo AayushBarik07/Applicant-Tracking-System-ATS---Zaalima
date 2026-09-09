@@ -61,9 +61,7 @@ const Login = () => {
           <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }} disabled={loading}>
             {loading ? 'Signing In...' : 'Sign In'}
           </Button>
-          <Button fullWidth onClick={() => navigate('/register')}>
-            Don't have an account? Register
-          </Button>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}><Button onClick={() => navigate('/forgot-password')} sx={{ textTransform: 'none' }}>Forgot Password?</Button><Button onClick={() => navigate('/register')} sx={{ textTransform: 'none' }}>Don't have an account? Register</Button></Box>
         </Box>
       </Box>
     </Container>
@@ -71,3 +69,4 @@ const Login = () => {
 };
 
 export default Login;
+

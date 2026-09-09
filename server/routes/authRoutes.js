@@ -4,22 +4,15 @@ const {
   registerUser,
   loginUser,
   getMe,
+  forgotPassword,
+  resetPassword
 } = require('../controllers/authController');
 const { protect, authorize } = require('../middleware/auth');
 
 router.post('/register', registerUser);
 router.post('/login', loginUser);
 router.get('/me', protect, getMe);
-
-// Example of role-protected routes (to test middleware)
-router.get('/recruiter-only', protect, authorize('recruiter'), (req, res) => {
-  res.status(200).json({ message: 'Welcome Recruiter' });
-});
-
-router.get('/candidate-only', protect, authorize('candidate'), (req, res) => {
-  res.status(200).json({ message: 'Welcome Candidate' });
-});
+router.post('/forgot-password', forgotPassword);
+router.put('/reset-password/:resettoken', resetPassword);
 
 module.exports = router;
-
-// Reviewed for production readiness.

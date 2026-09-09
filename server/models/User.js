@@ -18,7 +18,9 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['recruiter', 'candidate'],
     required: true,
-  }
+  },
+  resetPasswordToken: String,
+  resetPasswordExpire: Date
 }, {
   timestamps: true // Automatically adds createdAt and updatedAt
 });
