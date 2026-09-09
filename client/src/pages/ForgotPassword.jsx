@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Container, Box, Typography, TextField, Button, Alert, Paper } from '@mui/material';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const api = axios.create({ baseURL: (import.meta.env.VITE_API_URL || 'https://applicant-tracking-system-ats-zaalima-1.onrender.com/api') });
 
@@ -10,16 +10,24 @@ const ForgotPassword = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [demoToken, setDemoToken] = useState(null);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setMessage('');
+    setDemoToken(null);
     setLoading(true);
 
     try {
       const res = await api.post('/auth/forgot-password', { email });
       setMessage(res.data.message || 'Password reset email sent. Please check your inbox.');
+      
+      // DEMO MODE: Catch the token sent back from the server
+      if (res.data.resetToken) {
+        setDemoToken(res.data.resetToken);
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to send reset email');
     } finally {
@@ -41,28 +49,41 @@ const ForgotPassword = () => {
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
           {message && <Alert severity="success" sx={{ mb: 2 }}>{message}</Alert>}
 
-          <form onSubmit={handleSubmit}>
-            <TextField
-              fullWidth
-              label="Email Address"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              margin="normal"
-              required
-            />
-            
+          {demoToken ? (
             <Button
-              type="submit"
               fullWidth
               variant="contained"
+              color="success"
               size="large"
               sx={{ mt: 3, mb: 2, py: 1.5, fontSize: '1.1rem', fontWeight: 'bold' }}
-              disabled={loading}
+              onClick={() => navigate('/reset-password/' + demoToken)}
             >
-              {loading ? 'Sending...' : 'Send Reset Link'}
+              Demo: Continue to Reset Password
             </Button>
-          </form>
+          ) : (
+            <form onSubmit={handleSubmit}>
+              <TextField
+                fullWidth
+                label="Email Address"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                margin="normal"
+                required
+              />
+              
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                size="large"
+                sx={{ mt: 3, mb: 2, py: 1.5, fontSize: '1.1rem', fontWeight: 'bold' }}
+                disabled={loading}
+              >
+                {loading ? 'Sending...' : 'Send Reset Link'}
+              </Button>
+            </form>
+          )}
 
           <Box sx={{ textAlign: 'center', mt: 2 }}>
             <Typography variant="body2">

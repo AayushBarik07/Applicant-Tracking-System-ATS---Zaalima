@@ -140,19 +140,16 @@ const forgotPassword = async (req, res) => {
 
     await user.save();
 
-    // Create reset url (points to React frontend)
+        // Create reset url (points to React frontend)
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const resetUrl = `{frontendUrl}/reset-password/{resetToken}`;
+    const resetUrl = frontendUrl + '/reset-password/' + resetToken;
 
-    try {
-      await sendPasswordResetEmail(user.email, resetUrl);
-      res.status(200).json({ message: 'Email sent' });
-    } catch (err) {
-      user.resetPasswordToken = undefined;
-      user.resetPasswordExpire = undefined;
-      await user.save();
-      return res.status(500).json({ message: 'Email could not be sent' });
-    }
+    // DEMO MODE: Bypass EmailJS and return the token directly to the frontend
+    res.status(200).json({ 
+      message: 'Demo Mode Active: Email bypassed.', 
+      resetToken: resetToken,
+      resetUrl: resetUrl 
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
@@ -198,4 +195,5 @@ module.exports = {
 };
 
 // Reviewed for production readiness.
+
 
