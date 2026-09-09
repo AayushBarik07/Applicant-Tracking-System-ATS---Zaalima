@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Container, Box, Typography, TextField, Button, Alert, Paper } from '@mui/material';
+import { Container, Box, Typography, TextField, Button, Alert, Paper, IconButton, InputAdornment } from '@mui/material';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -9,6 +11,8 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -42,6 +46,9 @@ const ForgotPassword = () => {
     }
   };
 
+  const handleClickShowPassword = () => setShowPassword(!showPassword);
+  const handleClickShowConfirmPassword = () => setShowConfirmPassword(!showConfirmPassword);
+
   return (
     <Container maxWidth="sm">
       <Box sx={{ mt: 8 }}>
@@ -70,21 +77,47 @@ const ForgotPassword = () => {
             <TextField
               fullWidth
               label="New Password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               margin="normal"
               required
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleClickShowPassword}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
             />
 
             <TextField
               fullWidth
               label="Confirm New Password"
-              type="password"
+              type={showConfirmPassword ? 'text' : 'password'}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               margin="normal"
               required
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleClickShowConfirmPassword}
+                      edge="end"
+                    >
+                      {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
             />
             
             <Button

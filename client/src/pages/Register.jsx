@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Container, Typography, TextField, Button, Box, Alert, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
+import { Container, Typography, TextField, Button, Box, Alert, Select, MenuItem, InputLabel, FormControl, IconButton, InputAdornment } from '@mui/material';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -7,6 +9,7 @@ const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState('candidate');
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -36,6 +39,8 @@ const Register = () => {
       setError(result.message);
     }
   };
+
+  const handleClickShowPassword = () => setShowPassword(!showPassword);
 
   return (
     <Container maxWidth="xs">
@@ -68,9 +73,22 @@ const Register = () => {
             required
             fullWidth
             label="Password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={handleClickShowPassword}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
           />
           
           <FormControl fullWidth margin="normal">
