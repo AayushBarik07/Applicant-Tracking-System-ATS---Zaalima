@@ -119,37 +119,33 @@ const getMe = async (req, res) => {
 const crypto = require('crypto');
 const { sendPasswordResetEmail } = require('../services/emailService');
 
-// @desc    Forgot Password
+// @desc    Directly Reset Password (Demo Flow)
 // @route   POST /api/auth/forgot-password
 // @access  Public
 const forgotPassword = async (req, res) => {
   try {
-    const user = await User.findOne({ email: req.body.email });
+    const { email, password } = req.body;
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: 'There is no user with that email' });
     }
 
-    // Get reset token
-    const resetToken = crypto.randomBytes(20).toString('hex');
-
-    // Hash token and set to resetPasswordToken field
-    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-
-    // Set expire (15 mins)
-    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+    // Set new password directly
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+    
+    // Clear any existing reset tokens just in case
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
 
     await user.save();
 
-        // Create reset url (points to React frontend)
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const resetUrl = frontendUrl + '/reset-password/' + resetToken;
-
-    // DEMO MODE: Bypass EmailJS and return the token directly to the frontend
-    res.status(200).json({ 
-      message: 'Demo Mode Active: Email bypassed.', 
-      resetToken: resetToken,
-      resetUrl: resetUrl 
-    });
+    res.status(200).json({ message: 'Password successfully updated!' });
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
@@ -195,5 +191,6 @@ module.exports = {
 };
 
 // Reviewed for production readiness.
+
 
 
