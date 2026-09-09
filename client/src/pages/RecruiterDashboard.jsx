@@ -60,8 +60,8 @@ const RecruiterDashboard = () => {
     },
   });
 
-    const deleteJob = useMutation({
-    mutationFn: (id) => api.delete(/jobs/ + id),
+  const deleteJob = useMutation({
+    mutationFn: (id) => api.delete(`/jobs/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recruiterJobs'] });
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
