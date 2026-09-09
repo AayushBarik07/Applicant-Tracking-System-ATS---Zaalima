@@ -91,8 +91,22 @@ const sendInterviewInvitationEmail = async (candidateEmail, candidateName, jobTi
   return await sendEmail(candidateEmail, subject, html);
 };
 
+
+const sendPasswordResetEmail = async (email, resetUrl) => {
+  const subject = "Password Reset Request";
+  const html = `
+    <h2>Password Reset</h2>
+    <p>You requested a password reset. Please click the link below to reset your password:</p>
+    <a href="${resetUrl}" target="_blank">Reset Password</a>
+    <p>This link will expire in 15 minutes.</p>
+    <p>If you did not request this, please ignore this email.</p>
+  `;
+  return await sendEmail(email, subject, html);
+};
+
 module.exports = {
   sendApplicationReceivedEmail,
   sendStatusChangedEmail,
-  sendInterviewInvitationEmail
+  sendInterviewInvitationEmail,
+  sendPasswordResetEmail
 };
