@@ -60,6 +60,20 @@ const RecruiterDashboard = () => {
     },
   });
 
+    const deleteJob = useMutation({
+    mutationFn: (id) => api.delete(/jobs/ + id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recruiterJobs'] });
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+    },
+  });
+
+  const handleDelete = (id) => {
+    if (window.confirm('Are you sure you want to permanently delete this job posting?')) {
+      deleteJob.mutate(id);
+    }
+  };
+
   const handleOpenCreate = () => {
     setEditingJob(null);
     setFormError('');
@@ -153,6 +167,7 @@ const RecruiterDashboard = () => {
                         Archive
                       </Button>
                     )}
+                    <Button size="small" color="error" sx={{ ml: 1 }} onClick={() => handleDelete(job._id)}>Delete</Button>
                   </TableCell>
                 </TableRow>
               ))
@@ -174,3 +189,4 @@ const RecruiterDashboard = () => {
 };
 
 export default RecruiterDashboard;
+

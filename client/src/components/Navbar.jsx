@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   AppBar, Toolbar, Typography, Button, Box, IconButton, 
-  Drawer, List, ListItem, ListItemText, useTheme, useMediaQuery 
+  Drawer, List, ListItem, ListItemText, useTheme, useMediaQuery, Chip 
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -91,7 +91,8 @@ const Navbar = () => {
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {!isMobile && user ? (
-            <>
+              <>
+                <Chip label={user.role === 'recruiter' ? 'Recruiter' : 'Candidate'} color={user.role === 'recruiter' ? 'primary' : 'success'} size="small" sx={{ mr: 1, fontWeight: 'bold', textTransform: 'capitalize' }} />
               <Button 
                 variant="outlined" 
                 color="primary" 
@@ -152,7 +153,8 @@ const Navbar = () => {
           
           <Box sx={{ mt: 'auto', p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
             {user ? (
-              <>
+                <>
+                <Chip label={user.role === 'recruiter' ? 'Recruiter' : 'Candidate'} color={user.role === 'recruiter' ? 'primary' : 'success'} sx={{ mb: 1, fontWeight: 'bold', textTransform: 'capitalize' }} />
                 <Button 
                   variant="outlined" 
                   fullWidth 
@@ -185,3 +187,6 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+
+
