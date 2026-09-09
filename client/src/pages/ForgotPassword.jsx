@@ -3,7 +3,7 @@ import { Container, Box, Typography, TextField, Button, Alert, Paper } from '@mu
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 
-const api = axios.create({ baseURL: (import.meta.env.VITE_API_URL || 'http://localhost:5000/api') });
+const api = axios.create({ baseURL: (import.meta.env.VITE_API_URL || 'https://applicant-tracking-system-ats-zaalima-1.onrender.com/api') });
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');

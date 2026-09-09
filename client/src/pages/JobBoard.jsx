@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const fetchJobs = async () => {
-  const { data } = await axios.get((import.meta.env.VITE_API_URL || 'http://localhost:5000/api') + '/jobs');
+  const { data } = await axios.get((import.meta.env.VITE_API_URL || 'https://applicant-tracking-system-ats-zaalima-1.onrender.com/api') + '/jobs');
   return data;
 };
 
