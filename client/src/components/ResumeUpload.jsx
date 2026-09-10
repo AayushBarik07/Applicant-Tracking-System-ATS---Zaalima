@@ -52,7 +52,7 @@ const ResumeUpload = ({ jobId }) => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post((import.meta.env.VITE_API_URL || 'http://localhost:5000/api') + '/applications', formData, {
+      const response = await axios.post((import.meta.env.VITE_API_URL || 'https://applicant-tracking-system-ats-zaalima-1.onrender.com/api') + '/applications', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`

@@ -11,24 +11,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Configure Cloudinary Storage for Multer
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: async (req, file) => {
-    const uniqueSuffix = crypto.randomBytes(16).toString('hex');
-    const ext = path.extname(file.originalname).toLowerCase().replace('.', '');
-    
-    // For PDFs and DOCX files, Cloudinary needs resource_type: 'raw' or 'auto'
-    // 'raw' is best for non-image files like docx and pdf.
-    return {
-      folder: 'zaalima_resumes',
-      public_id: `${uniqueSuffix}`,
-      resource_type: 'raw',
-      format: ext // Forces the extension
-    };
-  }
-});
-
 // File filter for PDF and DOCX only
 const fileFilter = (req, file, cb) => {
   const allowedMimeTypes = [
@@ -44,7 +26,9 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Initialize multer
+// Initialize multer with memory storage
+const storage = multer.memoryStorage();
+
 const upload = multer({
   storage: storage,
   fileFilter: fileFilter,

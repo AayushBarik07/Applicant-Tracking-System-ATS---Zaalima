@@ -134,12 +134,39 @@ const archiveJob = async (req, res) => {
   }
 };
 
+// @desc    Delete a job
+// @route   DELETE /api/jobs/:id
+// @access  Private (Recruiter only)
+const deleteJob = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+
+    // Make sure the logged-in user matches the job's recruiter
+    if (job.recruiter.toString() !== req.user.id) {
+      return res.status(401).json({ message: 'Not authorized to delete this job' });
+    }
+
+    await Job.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({ message: 'Job deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error while deleting job' });
+  }
+};
+
 module.exports = {
   getJobs,
   getJobById,
   createJob,
   updateJob,
   archiveJob,
+  deleteJob
 };
 
 // Reviewed for production readiness.
+

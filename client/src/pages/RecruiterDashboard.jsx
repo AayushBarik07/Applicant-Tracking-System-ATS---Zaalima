@@ -14,7 +14,7 @@ const RecruiterDashboard = () => {
   const [editingJob, setEditingJob] = useState(null);
   const [formError, setFormError] = useState('');
 
-  const api = axios.create({ baseURL: (import.meta.env.VITE_API_URL || 'http://localhost:5000/api')  });
+  const api = axios.create({ baseURL: (import.meta.env.VITE_API_URL || 'https://applicant-tracking-system-ats-zaalima-1.onrender.com/api')  });
   api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -60,6 +60,20 @@ const RecruiterDashboard = () => {
     },
   });
 
+  const deleteJob = useMutation({
+    mutationFn: (id) => api.delete(`/jobs/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recruiterJobs'] });
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+    },
+  });
+
+  const handleDelete = (id) => {
+    if (window.confirm('Are you sure you want to permanently delete this job posting?')) {
+      deleteJob.mutate(id);
+    }
+  };
+
   const handleOpenCreate = () => {
     setEditingJob(null);
     setFormError('');
@@ -86,9 +100,12 @@ const RecruiterDashboard = () => {
   };
 
   return (
-    <Container sx={{ mt: 4 }}>
+    <Container sx={{ mt: 4, mb: 8 }}>
+      <Typography variant="h5" color="text.secondary" gutterBottom>
+        Welcome, {user?.name}!
+      </Typography>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">My Jobs</Typography>
+        <Typography variant="h4" fontWeight="bold">My Jobs</Typography>
         <Button variant="contained" color="primary" onClick={handleOpenCreate}>
           + Post New Job
         </Button>
@@ -153,6 +170,7 @@ const RecruiterDashboard = () => {
                         Archive
                       </Button>
                     )}
+                    <Button size="small" color="error" sx={{ ml: 1 }} onClick={() => handleDelete(job._id)}>Delete</Button>
                   </TableCell>
                 </TableRow>
               ))
@@ -174,3 +192,5 @@ const RecruiterDashboard = () => {
 };
 
 export default RecruiterDashboard;
+
+

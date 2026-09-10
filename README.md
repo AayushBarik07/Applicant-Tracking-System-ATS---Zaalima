@@ -33,14 +33,11 @@ The core feature of this platform is the integration of **Google Gemini AI**, wh
 * **Cloud Storage:** Cloudinary
 
 ## System Architecture
-The application follows a standard MERN stack architecture, enhanced with a Python Microservice and serverless integrations. The Node.js backend serves as the core API, enforcing role-based authorization. Heavy tasks (like PDF parsing and AI processing) are offloaded to external services to keep the main thread fast.
+The application follows a standard MERN stack architecture, enhanced with serverless API integrations. The Node.js backend serves as the core API, enforcing role-based authorization. Critical tasks like PDF parsing are executed securely in-memory during the upload stream to bypass external file-hosting authentication blocks, ensuring 100% reliable data extraction before AI processing.
 
 ```mermaid
 graph TD
     Client[React Frontend <br/>Hosted on Vercel] -->|REST API Calls| Node[Node.js Backend <br/>Hosted on Render]
-    
-    Node -->|Resume PDF URL| Python[Python Microservice <br/>Hosted on Render]
-    Python -->|Extracted Plain Text| Node
     
     Node -->|Extracted Text + JD| Gemini[Google Gemini AI]
     Gemini -->|AI Match Score & JSON| Node
@@ -75,15 +72,7 @@ PYTHON_SERVICE_URL=http://localhost:5001/parse
 * A Cloudinary Account
 * A Gmail account with an App Password generated (for SMTP)
 
-### 1. Run the Python Microservice
-```bash
-cd python-service
-pip install -r requirements.txt
-python app.py
-# Runs on http://localhost:5001
-```
-
-### 2. Run the Backend
+### 1. Run the Backend
 ```bash
 cd server
 npm install
@@ -91,7 +80,7 @@ npm run dev
 # Runs on http://localhost:5000
 ```
 
-### 3. Run the Frontend
+### 2. Run the Frontend
 ```bash
 cd client
 npm install
@@ -102,9 +91,9 @@ npm run dev
 ## Workflows
 
 ### Resume Processing Flow
-1. Candidate uploads a PDF/DOCX resume (saved securely to Cloudinary).
-2. Node.js backend passes the Cloudinary URL to the Python Microservice.
-3. Python extracts raw text and returns it to Node.js.
+1. Candidate uploads a PDF resume.
+2. Node.js backend intercepts the file buffer in RAM and instantly extracts the raw text using `pdf-parse`.
+3. The original file is securely streamed and saved to Cloudinary.
 4. Extracted text is sent to the Gemini AI Service.
 5. Gemini returns structured JSON (skills, experience, education, summary).
 6. The structured data is saved directly into the MongoDB `Application` document.
