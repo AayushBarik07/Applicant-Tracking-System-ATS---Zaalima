@@ -1,6 +1,7 @@
 import React from 'react';
 import { Container, Typography, Box, Button, Chip, CircularProgress, Alert, Grid, Paper, Divider, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -10,6 +11,7 @@ import WorkIcon from '@mui/icons-material/Work';
 
 const CandidateDashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const fetchMyApplications = async () => {
@@ -51,13 +53,18 @@ const CandidateDashboard = () => {
 
   return (
     <Container sx={{ mt: 4, mb: 8 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 5 }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" color="text.secondary" gutterBottom>
+          Welcome, {user?.name}!
+        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 5 }}>
         <Typography variant="h3" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
           My Applications
         </Typography>
         <Button variant="contained" size="large" sx={{ borderRadius: 8, px: 4 }} onClick={() => navigate('/jobs')}>
           Browse Open Jobs
         </Button>
+      </Box>
       </Box>
 
       {isError && <Alert severity="error" sx={{ mb: 3 }}>Error: {error.message}</Alert>}
@@ -102,7 +109,7 @@ const CandidateDashboard = () => {
                       {app.job?.title || 'Unknown Job'}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
-                      📍 {app.job?.location || 'Remote'} | Applied on {new Date(app.createdAt).toLocaleDateString()}
+                      Location: {app.job?.location || 'Remote'} | Applied on {new Date(app.createdAt).toLocaleDateString()}
                     </Typography>
                     
                     <Box sx={{ mt: 2 }}>
@@ -161,7 +168,7 @@ const CandidateDashboard = () => {
                           </Stack>
                         ) : (
                           <Typography variant="body2" color={app.candidateInterviewResponse === 'Accepted' ? 'success.main' : 'error.main'} sx={{ fontWeight: 'bold' }}>
-                            {app.candidateInterviewResponse === 'Accepted' ? '✅ Interview Accepted' : '❌ Interview Declined'}
+                            {app.candidateInterviewResponse === 'Accepted' ? 'Interview Accepted' : 'Interview Declined'}
                           </Typography>
                         )}
                       </Box>
@@ -195,7 +202,7 @@ const CandidateDashboard = () => {
                           </Stack>
                         ) : (
                           <Typography variant="body2" color={app.candidateOfferResponse === 'Accepted' ? 'success.main' : 'error.main'} sx={{ fontWeight: 'bold' }}>
-                            {app.candidateOfferResponse === 'Accepted' ? '🎉 Offer Accepted!' : '❌ Offer Declined'}
+                            {app.candidateOfferResponse === 'Accepted' ? 'Offer Accepted' : 'Offer Declined'}
                           </Typography>
                         )}
                       </Box>

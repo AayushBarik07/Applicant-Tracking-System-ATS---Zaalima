@@ -251,11 +251,11 @@ const JobApplications = () => {
                   </CardContent>
                   <CardActions sx={{ px: 2, pb: 2, pt: 1, flexDirection: 'column', alignItems: 'stretch', gap: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                      <Button size="small" sx={{ minWidth: 'auto', p: 0.5, fontSize: '0.75rem' }} color="inherit" onClick={() => window.open(app.resumePath.startsWith('http') ? app.resumePath : `${import.meta.env.VITE_BASE_URL || 'https://applicant-tracking-system-ats-zaalima-1.onrender.com'}${app.resumePath}`, '_blank')}>
-                        📄 View Resume
-                      </Button>
-                      <Button size="small" sx={{ minWidth: 'auto', p: 0.5, fontSize: '0.75rem' }} color="primary" onClick={() => triggerAnalysis.mutate(app._id)} disabled={triggerAnalysis.isPending}>
-                        {app.aiScore !== undefined ? '🔄 Re-Analyze' : '✨ Analyze AI'}
+                        <Button size="small" sx={{ minWidth: 'auto', p: 0.5, fontSize: '0.75rem' }} color="inherit" onClick={() => window.open(app.resumePath.startsWith('http') ? app.resumePath : `${import.meta.env.VITE_BASE_URL || 'https://applicant-tracking-system-ats-zaalima-1.onrender.com'}${app.resumePath}`, '_blank')}>
+                          View Resume
+                        </Button>
+                        <Button size="small" sx={{ minWidth: 'auto', p: 0.5, fontSize: '0.75rem' }} color="primary" onClick={() => triggerAnalysis.mutate(app._id)} disabled={triggerAnalysis.isPending}>
+                          {app.aiScore !== undefined ? 'Re-Analyze' : 'Analyze AI'}
                       </Button>
                     </Box>
                     

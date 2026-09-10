@@ -81,40 +81,54 @@ const createApplication = async (req, res) => {
       return res.status(400).json({ message: 'You have already applied for this job' });
     }
 
-    // req.file.path is provided by CloudinaryStorage and contains the URL
-    const cloudinaryUrl = req.file.path;
+    // Upload buffer to Cloudinary manually
+    const cloudinary = require('cloudinary').v2;
+    const uploadToCloudinary = () => {
+      return new Promise((resolve, reject) => {
+        const ext = req.file.originalname.split('.').pop().toLowerCase();
+        const resourceType = ext === 'pdf' ? 'image' : 'auto';
+        
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: 'zaalima_resumes', resource_type: resourceType, format: ext },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        stream.end(req.file.buffer);
+      });
+    };
+
+    let cloudinaryResult;
+    try {
+      cloudinaryResult = await uploadToCloudinary();
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: 'Failed to upload to Cloudinary' });
+    }
+
+    const cloudinaryUrl = cloudinaryResult.secure_url;
 
     const application = await Application.create({
       candidate: req.user._id,
       job: jobId,
-      resumePath: cloudinaryUrl, // Store the Cloudinary URL
+      resumePath: cloudinaryUrl,
       status: 'Applied',
     });
 
-    // Background text extraction via Python Microservice
+    // Background text extraction using Node.js pdf-parse
     let extractedText = '';
     
     try {
-      // Send to Python Microservice
-      // In Node 18+, global.fetch is available. We'll use the global fetch API
-      const response = await fetch((process.env.PYTHON_SERVICE_URL || 'http://localhost:5001/parse'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: cloudinaryUrl, filename: req.file.originalname })
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        extractedText = data.text;
+      if (req.file.originalname.toLowerCase().endsWith('.pdf')) {
+        const pdfData = await pdfParse(req.file.buffer);
+        extractedText = pdfData.text;
       } else {
-        const errData = await response.json();
-        console.error('Python parsing error:', errData);
-        extractedText = `ERROR: Failed to parse document. ${errData.error || ''}`;
+        extractedText = 'WARNING: Only PDF files are fully parsed by AI currently.';
       }
-      
     } catch (parseError) {
       console.error('Extraction flow error:', parseError);
-      extractedText = 'ERROR: Failed to extract text from document via Microservice.';
+      extractedText = 'ERROR: Failed to extract text from document.';
     }
 
     application.resumeText = extractedText;
@@ -131,19 +145,15 @@ const createApplication = async (req, res) => {
 
     await application.save();
 
-    // Trigger email (non-blocking)
-    sendApplicationReceivedEmail(req.user.email, req.user.name, job.title).catch(err => console.error("Email failed:", err));
-
-    res.status(201).json({ message: 'Application submitted successfully', application });
+    res.status(201).json({
+      message: 'Application submitted successfully',
+      application,
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error while applying for job' });
+    res.status(500).json({ message: 'Server error' });
   }
 };
-
-// @desc    Get candidate's application history
-// @route   GET /api/applications/my
-// @access  Private (Candidate only)
 const getMyApplications = async (req, res) => {
   try {
     const applications = await Application.find({ candidate: req.user._id })

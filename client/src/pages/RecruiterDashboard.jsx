@@ -100,9 +100,12 @@ const RecruiterDashboard = () => {
   };
 
   return (
-    <Container sx={{ mt: 4 }}>
+    <Container sx={{ mt: 4, mb: 8 }}>
+      <Typography variant="h5" color="text.secondary" gutterBottom>
+        Welcome, {user?.name}!
+      </Typography>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">My Jobs</Typography>
+        <Typography variant="h4" fontWeight="bold">My Jobs</Typography>
         <Button variant="contained" color="primary" onClick={handleOpenCreate}>
           + Post New Job
         </Button>
@@ -189,4 +192,5 @@ const RecruiterDashboard = () => {
 };
 
 export default RecruiterDashboard;
+
 
