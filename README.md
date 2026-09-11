@@ -1,5 +1,7 @@
 # AI-Powered Applicant Tracking System (ATS)
 
+🚀 **Live Demo:** [https://applicant-tracking-system-ats-zaali.vercel.app/](https://applicant-tracking-system-ats-zaali.vercel.app/)
+
 ## Project Overview
 The Zaalima AI-Powered Applicant Tracking System (ATS) is an end-to-end recruitment platform designed to streamline the hiring process. Built for "Project 3" of the Zaalima Internship, this application empowers recruiters to manage job postings and candidates using a visual Kanban pipeline, while candidates can securely upload their resumes to apply. 
 
