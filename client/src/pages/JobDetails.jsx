@@ -52,6 +52,11 @@ const JobDetails = () => {
         </Typography>
         
         <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+          {job.companyName && (
+            <Typography variant="subtitle1" color="text.secondary">
+              🏢 {job.companyName}
+            </Typography>
+          )}
           {job.location && (
             <Typography variant="subtitle1" color="text.secondary">
               📍 {job.location}

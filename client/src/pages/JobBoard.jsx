@@ -21,6 +21,7 @@ const JobBoard = () => {
 
   const filteredJobs = jobs?.filter(job => 
     job.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (job.companyName && job.companyName.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (job.location && job.location.toLowerCase().includes(searchTerm.toLowerCase())) ||
     job.skills?.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -83,7 +84,7 @@ const JobBoard = () => {
                     {job.title}
                   </Typography>
                   <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                    {job.location || 'Remote / Unspecified'}
+                    {job.companyName} • {job.location || 'Remote / Unspecified'}
                   </Typography>
                   
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
