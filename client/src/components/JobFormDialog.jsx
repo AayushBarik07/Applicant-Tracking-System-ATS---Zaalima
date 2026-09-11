@@ -4,6 +4,7 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, B
 const JobFormDialog = ({ open, onClose, onSubmit, initialData, isLoading, error }) => {
   const [formData, setFormData] = useState({
     title: '',
+    companyName: '',
     description: '',
     skills: '',
     experienceRequired: '',
@@ -14,13 +15,14 @@ const JobFormDialog = ({ open, onClose, onSubmit, initialData, isLoading, error 
     if (initialData) {
       setFormData({
         title: initialData.title || '',
+        companyName: initialData.companyName || '',
         description: initialData.description || '',
         skills: initialData.skills ? initialData.skills.join(', ') : '',
         experienceRequired: initialData.experienceRequired || '',
         location: initialData.location || '',
       });
     } else {
-      setFormData({ title: '', description: '', skills: '', experienceRequired: '', location: '' });
+      setFormData({ title: '', companyName: '', description: '', skills: '', experienceRequired: '', location: '' });
     }
   }, [initialData, open]);
 
@@ -49,6 +51,14 @@ const JobFormDialog = ({ open, onClose, onSubmit, initialData, isLoading, error 
               label="Job Title"
               name="title"
               value={formData.title}
+              onChange={handleChange}
+              required
+              fullWidth
+            />
+            <TextField
+              label="Company Name"
+              name="companyName"
+              value={formData.companyName}
               onChange={handleChange}
               required
               fullWidth

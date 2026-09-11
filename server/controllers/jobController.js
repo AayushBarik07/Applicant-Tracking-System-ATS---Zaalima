@@ -53,14 +53,15 @@ const getJobById = async (req, res) => {
 // @access  Private (Recruiter only)
 const createJob = async (req, res) => {
   try {
-    const { title, description, skills, experienceRequired, location } = req.body;
+    const { title, companyName, description, skills, experienceRequired, location } = req.body;
 
-    if (!title || !description) {
-      return res.status(400).json({ message: 'Title and description are required' });
+    if (!title || !companyName || !description) {
+      return res.status(400).json({ message: 'Title, company name, and description are required' });
     }
 
     const job = await Job.create({
       title,
+      companyName,
       description,
       skills,
       experienceRequired,
@@ -92,12 +93,12 @@ const updateJob = async (req, res) => {
       return res.status(401).json({ message: 'Not authorized to update this job' });
     }
 
-    const { title, description, skills, experienceRequired, location } = req.body;
+    const { title, companyName, description, skills, experienceRequired, location } = req.body;
     
     // Only allow updating specific fields to prevent overriding recruiter or status
     const updatedJob = await Job.findByIdAndUpdate(
       req.params.id,
-      { title, description, skills, experienceRequired, location },
+      { title, companyName, description, skills, experienceRequired, location },
       { new: true, runValidators: true }
     );
 
