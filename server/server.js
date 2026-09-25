@@ -55,3 +55,5 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/ats_db')
 module.exports = app;
 
 // Reviewed for production readiness.
+
+// Automatic deployment trigger comment - 2026-09-25 22:42:28
