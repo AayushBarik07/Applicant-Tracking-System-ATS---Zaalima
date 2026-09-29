@@ -117,4 +117,4 @@ npm run dev
 * Add in-memory testing environments (`mongodb-memory-server`) for deterministic CI/CD pipelines.
 * Implement pagination for the Job Board and Applications Dashboard to handle massive data sets smoothly.
 
-<!-- Last deployment trigger: 2026-09-24 21:34:28 -->
+<!-- Last deployment trigger: 2026-09-29 19:20:06 -->
