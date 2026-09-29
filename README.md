@@ -1,13 +1,13 @@
-# ?? Zaalima: AI-Powered Applicant Tracking System (ATS)
+# 🚀 Zaalima: AI-Powered Applicant Tracking System (ATS)
 
 **Live Demo:** [https://applicant-tracking-system-ats-zaali.vercel.app/](https://applicant-tracking-system-ats-zaali.vercel.app/)
 
-## ?? Project Overview
+## 📌 Project Overview
 The Zaalima AI-Powered ATS is a modern, end-to-end recruitment platform designed to eliminate hiring bias and streamline candidate evaluation. Built for "Project 3" of the Zaalima Internship, this MERN-stack application provides a dual-role environment: Recruiters can manage job lifecycles via an interactive Kanban board, while Candidates can securely apply for roles.
 
 The platform's standout feature is the integration of **Google Gemini AI**, which automates resume parsing and evaluates candidate qualifications against specific Job Descriptions, generating an intelligent, data-driven "Match Score".
 
-## ?? Role-Based Architecture
+## 🏗️ Role-Based Architecture
 
 ```mermaid
 graph TD
@@ -25,7 +25,7 @@ graph TD
     B -->|Trigger Status Emails| E[EmailJS API]
 ```
 
-## ?? Tech Stack 
+## 🛠️ Tech Stack 
 * **Frontend:** React.js, Material-UI, Vite (Deployed on Vercel)
 * **Backend:** Node.js, Express.js (Deployed on Render)
 * **Database:** MongoDB Atlas
@@ -33,7 +33,7 @@ graph TD
 * **AI Engine:** Google Gemini AI API
 * **Communication:** EmailJS (Serverless automated email notifications)
 
-## ? Core Features
+## ✨ Core Features
 
 ### For Recruiters
 * **Smart Job Management:** Create, edit, and archive job postings with specific required skills and company details.
@@ -46,7 +46,7 @@ graph TD
 * **Secure Application Portal:** Upload PDF/DOCX resumes (parsed in-memory and stored securely in the cloud).
 * **Two-Way Interactive Dashboard:** Accept or Decline interview invitations and final job offers directly from the dashboard, which instantly updates the Recruiter's Kanban board.
 
-## ?? How the AI Pipeline Works
+## 🧠 How the AI Pipeline Works
 To ensure maximum reliability and bypass strict cloud-storage security blocks, the AI pipeline is handled entirely in-memory:
 1. Candidate uploads a PDF resume.
 2. The Node.js backend intercepts the file buffer and extracts the raw text in-memory using `pdf-parse`.
@@ -54,7 +54,7 @@ To ensure maximum reliability and bypass strict cloud-storage security blocks, t
 4. Gemini returns a structured JSON evaluation (Match Score & Feedback).
 5. The original PDF buffer is then securely streamed to Cloudinary for permanent storage.
 
-## ?? Local Setup Instructions
+## 🚀 Local Setup Instructions
 To run this project locally on your machine:
 
 **1. Clone the repository:**
@@ -78,7 +78,7 @@ npm install
 npm run dev
 ```
 
-## ?? Progress Report: 
+## 📅 Progress Report: 
 
 <details>
 <summary><b>Click to expand the day-by-day breakdown</b></summary>
